@@ -6,6 +6,6 @@
  * @author dev
  *
  */
-public class BlankBatchSender {
+public class BlankBatchSender2 {
 
 }
