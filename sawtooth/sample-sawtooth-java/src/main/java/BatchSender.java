@@ -1,8 +1,14 @@
 import com.google.protobuf.ByteString;
 import com.mashape.unirest.http.Unirest;
+
+import co.nstant.in.cbor.CborBuilder;
+import co.nstant.in.cbor.CborEncoder;
+import co.nstant.in.cbor.CborException;
 import sawtooth.sdk.processor.Utils;
 import sawtooth.sdk.protobuf.*;
 import sawtooth.sdk.client.Signing;
+
+import java.io.ByteArrayOutputStream;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -20,59 +26,34 @@ public class BatchSender {
 
     public static void main(String[] args) throws Exception{
 
-
-        //KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-        //ECGenParameterSpec parameterSpec = new ECGenParameterSpec("secp256k1");
-        
-        //keyPairGenerator.initialize(parameterSpec);
-
-        //KeyPair keyPair = keyPairGenerator.generateKeyPair(); // generate the originator or signer key pair.
-       
-        //Signature ecdsaSign = Signature.getInstance("SHA256withECDSA");
-
-        //ecdsaSign.initSign(keyPair.getPrivate());
-        
         //byte[] publicKeyBytes = keyPair.getPublic().getEncoded();
-        
-        
-//        String privateKeyWif = "51114cac71a9575bc1b39104d176a39d81bd1a705b9a1ad32efd2222f13e59ad";
-//        ECKey privateKey = Signing.readWif(privateKeyWif);
-//
-//        String expectedPublicKey = "025fe2d166a5a8ff005eb0c799a474174f5d061de266438c69d36c2032c6bff51a";
-//        String calculatedPublicKey = Signing.getPublicKey(privateKey);
-//        assert expectedPublicKey.equals(calculatedPublicKey);
 
     	ECKey privateKey = Signing.generatePrivateKey(null);  // new random privatekey
     	String publicKeyHex = privateKey.getPublicKeyAsHex();
-    			
-    	System.out.println("Key Pair Generated PVT as :"+privateKey.getPrivateKeyAsHex());
-        System.out.println("Key Pair Generated PUB as :"+publicKeyHex);
-
-        //byte[] publicKeyBytes =    calculatedPublicKey.getBytes();
-        //byte[] publicKeyBytes =    privateKey.getPubKey();
         
         //String publicKeyHex = Utils.hash512(publicKeyBytes);
         ByteString publicKeyByteString = ByteString.copyFrom(new String(publicKeyHex),"UTF-8");
 
 
         String payload = "{'Name':'sonar', 'Value':'some_value'}";  // the actual payload data.
-        String payloadBytes = Utils.hash512(payload.getBytes());
-
-        ByteString payloadByteString  = ByteString.copyFrom(payload.getBytes());
-        //ByteString payloadByteString  = ByteString.copyFrom(payloadBytes.getBytes());
+        //String payloadBytes = Utils.hash512(payload.getBytes());
+        String payloadBytes = Utils.hash512(encodePayload(payload));
         
+
+        ByteString payloadByteString  = ByteString.copyFrom(encodePayload(payload));
+        //ByteString payloadByteString  = ByteString.copyFromUtf8(payload);
         
 
         TransactionHeader txnHeader = TransactionHeader.newBuilder().
         		clearBatcherPublicKey().
-        		setBatcherPublicKeyBytes(publicKeyByteString).     		
+        		setBatcherPublicKey(publicKeyHex).
+        		//setBatcherPublicKeyBytes(publicKeyByteString).        		
                 setFamilyName("intkey").
                 setFamilyVersion("1.0").
                 addInputs("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7").
                 setNonce("1").
                 addOutputs("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7").
                 //setPayloadEncoding("application/json").
-                //setPayloadSha512Bytes(payloadByteString).
                 setPayloadSha512(payloadBytes).
                 setSignerPublicKey(publicKeyHex).
                 build();
@@ -129,7 +110,17 @@ public class BatchSender {
     }
 
     
-    public void getSigner() {
+    private static byte[] encodePayload(String payload) throws CborException {
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    	new CborEncoder(baos).encode(new CborBuilder()
+    	    .add(payload)                // add string
+    	    .build());
+    	byte[] encodedBytes = baos.toByteArray();
+		return encodedBytes;
+	}
+
+
+	public void getSigner() {
     	
     }
 
