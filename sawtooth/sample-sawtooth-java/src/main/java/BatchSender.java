@@ -1,4 +1,4 @@
-import com.google.protobuf.ByteString;
+	import com.google.protobuf.ByteString;
 import com.mashape.unirest.http.Unirest;
 
 import co.nstant.in.cbor.CborBuilder;
@@ -19,7 +19,10 @@ import java.security.spec.ECGenParameterSpec;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.ssl.PrivateKeyDetails;
+import org.bitcoinj.core.Base58;
+import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.VersionedChecksummedBytes;
 import org.spongycastle.crypto.params.DSAPrivateKeyParameters;
 import org.spongycastle.crypto.util.PrivateKeyFactory;
 public class BatchSender {
@@ -29,18 +32,18 @@ public class BatchSender {
         //byte[] publicKeyBytes = keyPair.getPublic().getEncoded();
 
     	ECKey privateKey = Signing.generatePrivateKey(null);  // new random privatekey
+		
     	String publicKeyHex = privateKey.getPublicKeyAsHex();
         
         //String publicKeyHex = Utils.hash512(publicKeyBytes);
         ByteString publicKeyByteString = ByteString.copyFrom(new String(publicKeyHex),"UTF-8");
 
 
-        String payload = "{'Name':'sonar', 'Value':'some_value'}";  // the actual payload data.
         //String payloadBytes = Utils.hash512(payload.getBytes());
-        String payloadBytes = Utils.hash512(encodePayload(payload));
+        String payloadBytes = Utils.hash512(encodePayload());  //--fix for invaluid payload seriqalization
         
 
-        ByteString payloadByteString  = ByteString.copyFrom(encodePayload(payload));
+        ByteString payloadByteString  = ByteString.copyFrom(encodePayload());
         //ByteString payloadByteString  = ByteString.copyFromUtf8(payload);
         
 
@@ -50,9 +53,11 @@ public class BatchSender {
         		//setBatcherPublicKeyBytes(publicKeyByteString).        		
                 setFamilyName("intkey").
                 setFamilyVersion("1.0").
-                addInputs("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7").
+                //addInputs("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7").
+                addInputs("1cf12671ff2ab0ba5c0d7e0e3ccda7e36eaa587b9fe8b7208c8848da5d8a816fd04076").
                 setNonce("1").
-                addOutputs("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7").
+                //addOutputs("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7").
+                addOutputs("1cf12671ff2ab0ba5c0d7e0e3ccda7e36eaa587b9fe8b7208c8848da5d8a816fd04076").
                 //setPayloadEncoding("application/json").
                 setPayloadSha512(payloadBytes).
                 setSignerPublicKey(publicKeyHex).
@@ -104,16 +109,24 @@ public class BatchSender {
         ByteString batchBytes = batchList.toByteString();
 
 
-        String serverResponse =  Unirest.post("http://127.0.0.1:8008/batches").header("Content-Type","application/octet-stream").body(batchBytes.toByteArray()).asString().getBody();
+        String serverResponse =  Unirest.post("http://localhost:8008/batches").header("Content-Type","application/octet-stream").body(batchBytes.toByteArray()).asString().getBody();
 
         System.out.println(serverResponse);
     }
 
-    
-    private static byte[] encodePayload(String payload) throws CborException {
+    /**
+     * The encoding with payload shoudl match with the expected with transactin processor
+     * @return
+     * @throws CborException
+     */
+    private static byte[] encodePayload() throws CborException {
     	ByteArrayOutputStream baos = new ByteArrayOutputStream();
     	new CborEncoder(baos).encode(new CborBuilder()
-    	    .add(payload)                // add string
+    		.addMap()
+    		.put("Verb", "inc")
+    	    .put("Name", "Sonar")
+    	    .put("Value", 105)
+    	    .end()
     	    .build());
     	byte[] encodedBytes = baos.toByteArray();
 		return encodedBytes;
