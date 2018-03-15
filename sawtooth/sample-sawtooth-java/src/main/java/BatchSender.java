@@ -125,7 +125,7 @@ public class BatchSender {
     		.addMap()
     		.put("Verb", "inc")
     	    .put("Name", "Sonar")
-    	    .put("Value", 105)
+    	    .put("Value", 1055)
     	    .end()
     	    .build());
     	byte[] encodedBytes = baos.toByteArray();

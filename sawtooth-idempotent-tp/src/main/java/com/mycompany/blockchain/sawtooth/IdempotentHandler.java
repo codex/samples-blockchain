@@ -8,6 +8,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -37,6 +38,7 @@ public class IdempotentHandler implements TransactionHandler {
 	public IdempotentHandler() {
 		try {
 			this.idemNameSpace = Utils.hash512(this.transactionFamilyName().getBytes("UTF-8")).substring(0, 6);
+			logger.info("Namespace prefix caclcuated as - "+this.idemNameSpace);
 		} catch (UnsupportedEncodingException usee) {
 			usee.printStackTrace();
 			this.idemNameSpace = "";
@@ -44,17 +46,14 @@ public class IdempotentHandler implements TransactionHandler {
 	}
 
 	public String transactionFamilyName() {
-		// TODO Auto-generated method stub
 		return IDEM;
 	}
 
 	public String getVersion() {
-		// TODO Auto-generated method stub
 		return VER;
 	}
 
 	public Collection<String> getNameSpaces() {
-
 		ArrayList<String> namespaces = new ArrayList<String>();
 		namespaces.add(this.idemNameSpace);
 		return namespaces;
@@ -69,8 +68,12 @@ public class IdempotentHandler implements TransactionHandler {
 		// Fail Fast approach.
 
 		String address = getUniqueAddress(payload);
-
+		
 		logger.info("Unique Address calculated as - " + address);
+	  //  String stateEntry = state.getState(Collections.singletonList(address)).get(address).toStringUtf8();
+		
+//	    logger.info("StateEntry at Address is - " + stateEntry.getBytes());
+
 
 		Collection<String> addresses = new ArrayList<String>(0);
 		// here we are just storing the data.
@@ -89,6 +92,10 @@ public class IdempotentHandler implements TransactionHandler {
 	 * The implementation that shoudl return a unique address as per the payload
 	 * that is requested. The implementers have to take care of adding the necessary
 	 * logic for uniqueness and durability.
+	 * 
+	 * 
+	 * Note  -  For sender this evaluation for a payload need to be calculated in teh same for 
+	 * input and output transaction address
 	 * 
 	 * @param payload
 	 * @return
