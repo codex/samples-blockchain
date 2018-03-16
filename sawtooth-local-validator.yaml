@@ -1,0 +1,130 @@
+# Copyright 2017 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------------
+
+version: "2.1"
+
+services:
+
+  validator-0:
+    image: sawtooth-validator:latest
+    container_name: sawtooth-peer-validator-0
+    volumes:
+      - /home/dev/work/code/sawtooth-core/:/project/sawtooth-core
+    expose:
+      - 4004
+      - 8800
+    command: "bash -c \"\
+        sawadm keygen --force && \
+        sawset genesis \
+          -k /etc/sawtooth/keys/validator.priv \
+          -o config-genesis.batch && \
+        sawadm genesis \
+          config-genesis.batch && \
+        sawtooth-validator -vv \
+          --bind network:tcp://eth0:8800 \
+          --bind component:tcp://eth0:4004 \
+          --peering dynamic \
+          --endpoint tcp://validator-0:8800 \
+          --scheduler serial \
+          --network trust \
+          --opentsdb-url http://influxdb:8086 \
+          --opentsdb-db metrics
+    \""
+    environment:
+      PYTHONPATH: "/project/sawtooth-core/consensus/poet/common:\
+        /project/sawtooth-core/consensus/poet/simulator:\
+        /project/sawtooth-core/consensus/poet/core"
+    stop_signal: SIGKILL
+
+  settings-tp-0:
+    image: sawtooth-settings-tp:latest
+    container_name: sawtooth-peer-settings-tp-0
+    depends_on:
+      - validator-0
+    volumes:
+      - /home/dev/work/code/sawtooth-core/:/project/sawtooth-core
+    expose:
+      - 4004
+    command: settings-tp -C tcp://validator-0:4004
+    stop_signal: SIGKILL
+
+  rest-api-0:
+    image: sawtooth-rest-api:latest
+    container_name: sawtooth-peer-rest-api-0
+    depends_on:
+      - settings-tp-0
+    ports:
+      - 8008:8008
+      - 4004:4004
+    volumes:
+      - /home/dev/work/code/sawtooth-core/:/project/sawtooth-core
+    expose:
+      - 4004
+      - 8008
+    command: |
+      bash -c "
+        sawtooth-rest-api \
+          --connect tcp://validator-0:4004 \
+          --bind rest-api-0:8008 \
+          --opentsdb-url http://influxdb:8086 \
+          --opentsdb-db metrics
+      "
+    stop_signal: SIGKILL
+
+  intkey-tp-0:
+    image: sawtooth-intkey-tp-python:latest
+    container_name: sawtooth-peer-intkey-tp-0
+    depends_on:
+      - rest-api-0
+    volumes:
+      - /home/dev/work/code/sawtooth-core/:/project/sawtooth-core
+    expose:
+      - 4004
+    command: intkey-tp-python -C tcp://validator-0:4004
+    stop_signal: SIGKILL
+
+  shell:
+    image: hyperledger/sawtooth-all:1.0
+    container_name: sawtooth-shell-default
+    depends_on:
+      - intkey-tp-0
+    volumes:
+      - /home/dev/work/code/:/home/dev/work/code/
+    entrypoint: "bash -c \"\
+        sawtooth keygen && \
+        tail -f /dev/null \
+        \""
+
+  influxdb:
+    build:
+      context: /home/dev/work/code/sawtooth-core/docker
+      dockerfile: influxdb/sawtooth-stats-influxdb
+    image: sawtooth-stats-influxdb:latest
+    container_name: sawtooth-peer-influxdb
+    ports:
+      - "8086:8086"
+    stop_signal: SIGKILL
+
+  grafana:
+    build:
+      context: /home/dev/work/code/sawtooth-core/docker
+      dockerfile: grafana/sawtooth-stats-grafana
+    image: sawtooth-stats-grafana:latest
+    container_name: sawtooth-peer-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/dev/work/code/sawtooth-core/:/project/sawtooth-core
+    stop_signal: SIGKILL
