@@ -1,4 +1,4 @@
 language: java
-mvn test -B
+script: 
 cd sawtooth-idempotent-tp
 mvn clean install 
