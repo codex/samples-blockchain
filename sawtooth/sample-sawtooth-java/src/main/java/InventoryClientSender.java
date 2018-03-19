@@ -30,6 +30,7 @@ public class InventoryClientSender {
 	private static final Logger logger = Logger.getLogger(InventoryClientSender.class.getName());
 	private static final String IDEM = "invent";
 	private static final String VER = "1.0";
+	private static final String ITEM_ID = "00002";
 	public static void main(String[] args) throws UnirestException, UnsupportedEncodingException, InternalError {
 
 		ECKey privateKey = Signing.generatePrivateKey(null); // new random privatekey
@@ -38,16 +39,15 @@ public class InventoryClientSender {
 
 		ByteString publicKeyByteString = ByteString.copyFrom(new String(publicKeyHex), "UTF-8");
 
-		String prefix = "nis";
-
-		//String payload = getIncrementalPayload(prefix);
-		String payload = "create,id=00001,itemName=Computer,colour=red,price=1000";
+		//Paramters in sequence : id,itemName,color,price
+		//String payload = "create," + ITEM_ID + ",BLockchain CPU,Black,5000";
+		String payload = "list," + ITEM_ID;
 		logger.info("Sending payload as - "+  payload);
 		String payloadBytes = Utils.hash512(payload.getBytes()); // --fix for invaluid payload seriqalization
 
 		ByteString payloadByteString = ByteString.copyFrom(payload.getBytes());
 
-		String address = getAddress(IDEM, "00001"); // get unique address for input and output
+		String address = getAddress(IDEM, ITEM_ID); // get unique address for input and output
 		logger.info("Sending address as - "+  address);
 		TransactionHeader txnHeader = TransactionHeader.newBuilder().clearBatcherPublicKey()
 				.setBatcherPublicKey(publicKeyHex)
