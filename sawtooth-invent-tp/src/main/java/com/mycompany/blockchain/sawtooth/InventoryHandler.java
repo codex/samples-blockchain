@@ -8,6 +8,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -34,6 +35,9 @@ public class InventoryHandler implements TransactionHandler {
 
 	private static final String familyName = "invent";
 	private static final String VER = "1.0";
+	private static final String CREATE_ACTION = "create";
+	private static final String LIST_ACTION = "list";
+
 	private String inventoryNameSpace;
 
 	public InventoryHandler() {
@@ -68,16 +72,30 @@ public class InventoryHandler implements TransactionHandler {
 		// To get TransactionData to get inventory Item pojo
 		TransactionData transactionData = getUnpackedTransaction(tpProcessRequest);
 
-		// do all the validation here and raise exceptions in case of invalidations.
-		// Fail Fast approach.
+		//Check the action and proceed accordingly
+		if (CREATE_ACTION.equalsIgnoreCase(transactionData.getAction())) {
+			createInventoryItem(transactionData, state);
+		} else if (LIST_ACTION.equalsIgnoreCase(transactionData.getAction())) {
+			try {
+				getInventoryItems(transactionData.getAddresses(), state);
+			} catch (UnsupportedEncodingException e) {
+				logger.info(e.getMessage());
+			}
+		}
 
+	}
+
+	/**
+	 * Method to create Inventory Item
+	 * @param transactionData
+	 * @param state
+	 * @throws InternalError
+	 * @throws InvalidTransactionException
+	 */
+	private void createInventoryItem(TransactionData transactionData, State state)
+			throws InternalError, InvalidTransactionException {
 		String address = getUniqueAddress(transactionData.getInventoryItem().getId());
-
 		logger.info("Unique Address calculated as - " + address);
-		// String stateEntry =
-		// state.getState(Collections.singletonList(address)).get(address).toStringUtf8();
-
-		// logger.info("StateEntry at Address is - " + stateEntry.getBytes());
 
 		Collection<String> addresses = new ArrayList<String>(0);
 		// here we are just storing the data.
@@ -89,7 +107,31 @@ public class InventoryHandler implements TransactionHandler {
 		if (addresses.size() == 0) {
 			throw new InternalError("State error!. Data size is zeroF");
 		}
-		logger.info("Data has been written to " + address );
+		logger.info("Data has been written to " + address);
+	}
+
+	/**
+	 * Method to fetch Data from Blockchain 
+	 * @param addresses
+	 * @param state
+	 * @throws InternalError
+	 * @throws InvalidTransactionException
+	 * @throws UnsupportedEncodingException
+	 */
+	private void getInventoryItems(List<String> addresses, State state)
+			throws InternalError, InvalidTransactionException, UnsupportedEncodingException {
+		List<String> sawtoothAddresses = new ArrayList<>();
+		for (String inventoryId : addresses) {
+			sawtoothAddresses.add(getUniqueAddress(inventoryId));
+		}
+
+		Map<String, ByteString> blockchainDataMap = state.getState(sawtoothAddresses);
+
+		logger.info("Current Blockchain State :");
+		for (Map.Entry<String, ByteString> data : blockchainDataMap.entrySet()) {
+			logger.info(data.getKey() + "=" + data.getValue().toString("UTF-8"));
+		}
+
 	}
 
 	/**
@@ -155,20 +197,33 @@ public class InventoryHandler implements TransactionHandler {
 			throws InvalidTransactionException {
 		String payload = transactionRequest.getPayload().toStringUtf8();
 		ArrayList<String> payloadList = new ArrayList<>(Arrays.asList(payload.split(",")));
-		if (payloadList.size() > 5) {
-			throw new InvalidTransactionException("Invalid payload serialization");
+		if (CREATE_ACTION.equalsIgnoreCase(payloadList.get(0))) {
+			if (payloadList.size() > 5) {
+				throw new InvalidTransactionException("Invalid payload serialization");
+			}
+			while (payloadList.size() < 5) {
+				payloadList.add("");
+			}
+			return new TransactionData(payloadList.get(0), payloadList.get(1), payloadList.get(2), payloadList.get(3),
+					payloadList.get(4));
+		} else if (LIST_ACTION.equalsIgnoreCase(payloadList.get(0))) {
+			if (payloadList.size() < 2) {
+				throw new InvalidTransactionException("Invalid payload serialization");
+			}
+			List<String> addresses = new ArrayList<>();
+			for (int i = 1; i < payloadList.size(); i++) {
+				addresses.add(payloadList.get(i));
+			}
+			return new TransactionData(payloadList.get(0), addresses);
 		}
-		while (payloadList.size() < 5) {
-			payloadList.add("");
-		}
-		return new TransactionData(payloadList.get(0), payloadList.get(1).split("=")[1],
-				payloadList.get(2).split("=")[1], payloadList.get(3).split("=")[1], payloadList.get(4).split("=")[1]);
-	}
+		throw new InvalidTransactionException("Invalid payload serialization. InCorrect action specified...");
 
+	}
 }
 
 class TransactionData {
 	final String action;
+	List<String> addresses = new ArrayList<>();
 	final InventoryItem inventoryItem;
 
 	public TransactionData(String action, String id, String itemName, String colour, String price) {
@@ -177,12 +232,23 @@ class TransactionData {
 		this.inventoryItem = new InventoryItem(id, itemName, colour, price);
 	}
 
+	public TransactionData(String action, List<String> addresses) {
+		super();
+		this.action = action;
+		this.addresses = addresses;
+		this.inventoryItem = new InventoryItem(null, null, null, null);
+	}
+
 	public String getAction() {
 		return action;
 	}
 
 	public InventoryItem getInventoryItem() {
 		return inventoryItem;
+	}
+
+	public List<String> getAddresses() {
+		return addresses;
 	}
 }
 
