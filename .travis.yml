@@ -1,4 +1,1 @@
 language: java
-script: 
-cd sawtooth-idempotent-tp
-mvn clean install 
