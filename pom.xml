@@ -5,7 +5,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-  	<module>sample-sawtooth-java</module>
+  	<module>sawtooth/sample-sawtooth-java</module>
   	<module>sawtooth-idempotent-tp</module>
   	<module>sawtooth-invent-tp</module>
   </modules>
