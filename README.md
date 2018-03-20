@@ -26,6 +26,11 @@ Pre Requisits
 
 
 1. Checkout the repository 
-2. cd to docker
+2. cd to docker docker/docker-compose
 3. Run below command to start peering
-4. To enter the shell run below command and then yuo can start testing in peering mode.
+$ sudo docker-compose -f sawtooth-local-validator-peer.yaml up
+in order to bring down, d Ctrl + C and the run below command
+$ sudo docker-compose -f sawtooth-local-validator-peer.yaml down
+4. To enter the shell , open the new terminal window  and run below command and then yuo can start testing in peering mode.
+$docker exec -it sawtooth-shell-default bash
+  
