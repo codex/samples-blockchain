@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.mycompany.blockchain.protobuf";
+
+
+//of a structured payload type "create,id=00001,itemName=Computer,colour=red,price=1000";
+message Item{
+	//entity id
+	int32 id = 1;  
+	//the name 
+	string name = 2;
+	//the color
+	string color= 3;
+	//the price
+	float price = 4;  
+}
