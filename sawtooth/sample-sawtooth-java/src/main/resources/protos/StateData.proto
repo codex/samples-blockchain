@@ -1,0 +1,26 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "protobuf.java.com.mycompany.blockchain.protobuf";
+
+
+//of a structured payload type "create,id=00001,itemName=Computer,colour=red,price=1000";
+message StateData{
+	//Data
+	repeated Data data = 1;  
+	//the head
+	string head = 2;
+	//the link
+	string link= 3;
+	//the price
+	Paging paging = 4;  
+}
+
+message Data {  
+  string address = 1;
+  string data = 2;  
+}
+
+message Paging {  
+  string limit = 1;
+  string start = 2;  
+}

@@ -1,13 +1,19 @@
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
+import java.util.Base64;
+import java.util.Base64.Decoder;
 import java.util.logging.Logger;
 
 import org.bitcoinj.core.ECKey;
 
 import com.google.protobuf.ByteString;
+import com.googlecode.protobuf.format.JsonFormat;
+import com.googlecode.protobuf.format.JsonFormat.ParseException;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
+import protobuf.java.com.mycompany.blockchain.protobuf.Data;
+import protobuf.java.com.mycompany.blockchain.protobuf.StateData;
 import sawtooth.sdk.client.Signing;
 import sawtooth.sdk.processor.TransactionHandler;
 import sawtooth.sdk.processor.Utils;
@@ -30,9 +36,34 @@ public class InventoryClientSender {
 	private static final Logger logger = Logger.getLogger(InventoryClientSender.class.getName());
 	private static final String IDEM = "invent";
 	private static final String VER = "1.0";
-	private static final String ITEM_ID = "00002";
-	public static void main(String[] args) throws UnirestException, UnsupportedEncodingException, InternalError {
+	private static final String ITEM_ID = "00005";
+	public static void main(String[] args) throws UnirestException, UnsupportedEncodingException, InternalError, ParseException {
+		//putDataToBLockchain();
+		getDataFromBlockchain();		
+	}
+	
+	public static void getDataFromBlockchain() throws UnirestException, UnsupportedEncodingException, InternalError, ParseException {
 
+		String address = getAddress(IDEM, ITEM_ID); // get unique address for input and output
+		
+		String serverResponse = Unirest.get("http://localhost:8008/state")
+				.queryString("address",address)
+				.asString()
+				.getBody();
+		
+		System.out.println(serverResponse);
+		
+		StateData.Builder stateBuilder = StateData.newBuilder();
+		JsonFormat.merge(serverResponse, stateBuilder);
+		StateData stateData = stateBuilder.build();
+		Decoder decoder = Base64.getDecoder();
+		for(Data data : stateData.getDataList()) {
+			byte[] valueDecoded = decoder.decode(data.getData());
+			System.out.println("Decoded value is " + new String(valueDecoded));
+		}
+	}
+	
+	public static void putDataToBLockchain() throws UnirestException, UnsupportedEncodingException, InternalError, ParseException {
 		ECKey privateKey = Signing.generatePrivateKey(null); // new random privatekey
 
 		String publicKeyHex = privateKey.getPublicKeyAsHex();
@@ -40,8 +71,8 @@ public class InventoryClientSender {
 		ByteString publicKeyByteString = ByteString.copyFrom(new String(publicKeyHex), "UTF-8");
 
 		//Paramters in sequence : id,itemName,color,price
-		//String payload = "create," + ITEM_ID + ",BLockchain CPU,Black,5000";
-		String payload = "list," + ITEM_ID;
+		String payload = "create," + ITEM_ID + ",Hyperledger-Sawtooth,Orange,10000";
+		//String payload = "list," + ITEM_ID;
 		logger.info("Sending payload as - "+  payload);
 		String payloadBytes = Utils.hash512(payload.getBytes()); // --fix for invaluid payload seriqalization
 
