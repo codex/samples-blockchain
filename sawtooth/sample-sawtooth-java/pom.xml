@@ -41,7 +41,7 @@
 			<version>1.2</version>
 		</dependency>
 	</dependencies>
-	<build>
+	<!-- <build>
 		<plugins>
 		 	<plugin>
 				<groupId>org.xolstice.maven.plugins</groupId>
@@ -61,5 +61,5 @@
 				</executions>
 			</plugin>			
 		</plugins>
-	</build>
+	</build> -->
 </project>

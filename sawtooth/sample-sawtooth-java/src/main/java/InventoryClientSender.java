@@ -36,7 +36,7 @@ public class InventoryClientSender {
 	private static final Logger logger = Logger.getLogger(InventoryClientSender.class.getName());
 	private static final String IDEM = "invent";
 	private static final String VER = "1.0";
-	private static final String ITEM_ID = "00005";
+	private static final String ITEM_ID = "00006";
 	public static void main(String[] args) throws UnirestException, UnsupportedEncodingException, InternalError, ParseException {
 		//putDataToBLockchain();
 		getDataFromBlockchain();		
@@ -71,7 +71,7 @@ public class InventoryClientSender {
 		ByteString publicKeyByteString = ByteString.copyFrom(new String(publicKeyHex), "UTF-8");
 
 		//Paramters in sequence : id,itemName,color,price
-		String payload = "create," + ITEM_ID + ",Hyperledger-Sawtooth,Orange,10000";
+		String payload = "create," + ITEM_ID + ",Hyperledger-Sawtooth-6,OrangeBlue,7000";
 		//String payload = "list," + ITEM_ID;
 		logger.info("Sending payload as - "+  payload);
 		String payloadBytes = Utils.hash512(payload.getBytes()); // --fix for invaluid payload seriqalization
