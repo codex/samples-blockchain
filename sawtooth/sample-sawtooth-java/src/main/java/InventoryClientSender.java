@@ -11,11 +11,10 @@ import com.googlecode.protobuf.format.JsonFormat;
 import com.googlecode.protobuf.format.JsonFormat.ParseException;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mycompany.blockchain.protobuf.Data;
+import com.mycompany.blockchain.protobuf.StateData;
 
-import protobuf.java.com.mycompany.blockchain.protobuf.Data;
-import protobuf.java.com.mycompany.blockchain.protobuf.StateData;
 import sawtooth.sdk.client.Signing;
-import sawtooth.sdk.processor.TransactionHandler;
 import sawtooth.sdk.processor.Utils;
 import sawtooth.sdk.processor.exceptions.InternalError;
 import sawtooth.sdk.protobuf.Batch;
