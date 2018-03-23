@@ -1,3 +1,4 @@
+package com.mycompany.blockchain.client;
 /**
  * 
  */

@@ -1,3 +1,4 @@
+package com.mycompany.blockchain.client;
 import java.io.ByteArrayOutputStream;
 
 import org.bitcoinj.core.ECKey;
