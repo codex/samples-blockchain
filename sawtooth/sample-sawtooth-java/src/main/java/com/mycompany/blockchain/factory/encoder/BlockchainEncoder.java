@@ -18,7 +18,19 @@ public interface BlockchainEncoder {
 	 */
 	public String getBloackchainAddressFromKey(String prefix, String key) throws BlockchainClientException;
 
+	/**
+	 * Encode the data
+	 * @param bytes
+	 * @return
+	 * @throws BlockchainClientException
+	 */
 	public byte[] encode(byte[] bytes) throws BlockchainClientException;
 
+	/**
+	 * Decode the encoded data
+	 * @param encodedString
+	 * @return
+	 * @throws BlockchainClientException
+	 */
 	public String decode(String encodedString) throws BlockchainClientException;
 }
