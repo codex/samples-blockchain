@@ -6,7 +6,7 @@ public class BlockchainEncoderFactory {
 
 	public static BlockchainEncoder getEncoder(String encoderType) {
 		if (Constants.BASE64_ENCODER.equalsIgnoreCase(encoderType)) {
-			new BlockchainBase64Encoder();
+			return new BlockchainBase64Encoder();
 		}
 		return null;
 	}

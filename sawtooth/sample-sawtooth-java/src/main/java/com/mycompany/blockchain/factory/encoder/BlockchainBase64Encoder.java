@@ -55,6 +55,6 @@ public class BlockchainBase64Encoder implements BlockchainEncoder {
 
 	@Override
 	public String decode(String encodedString) throws BlockchainClientException {
-		return String.valueOf(Base64.getDecoder().decode(encodedString));
+		return new String(Base64.getDecoder().decode(encodedString));
 	}
 }
