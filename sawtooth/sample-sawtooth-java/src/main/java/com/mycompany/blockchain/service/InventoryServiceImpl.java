@@ -1,7 +1,5 @@
 package com.mycompany.blockchain.service;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
 import java.util.logging.Logger;
 
 import org.bitcoinj.core.ECKey;
@@ -13,14 +11,14 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.GetRequest;
 import com.mycompany.blockchain.constants.Constants;
+import com.mycompany.blockchain.exceptions.BlockchainClientException;
+import com.mycompany.blockchain.factory.encoder.BlockchainEncoder;
+import com.mycompany.blockchain.factory.encoder.BlockchainEncoderFactory;
 import com.mycompany.blockchain.protobuf.Data;
 import com.mycompany.blockchain.protobuf.StateData;
-import com.mycompany.blockchain.utils.BlockchainUtils;
 
 import sawtooth.sdk.client.Signing;
 import sawtooth.sdk.processor.Utils;
-import sawtooth.sdk.processor.exceptions.InternalError;
-import sawtooth.sdk.processor.exceptions.InvalidTransactionException;
 import sawtooth.sdk.protobuf.Batch;
 import sawtooth.sdk.protobuf.BatchHeader;
 import sawtooth.sdk.protobuf.BatchList;
@@ -30,20 +28,21 @@ import sawtooth.sdk.protobuf.TransactionHeader;
 public class InventoryServiceImpl {
 
 	private static final Logger logger = Logger.getLogger(InventoryServiceImpl.class.getName());
+	
+	private BlockchainEncoder encoder = BlockchainEncoderFactory.getEncoder(Constants.BASE64_ENCODER); 
 
-	public void getDataFromBlockchain(String[] args) throws UnirestException, UnsupportedEncodingException,
-			InternalError, ParseException, InvalidTransactionException {
+	public void getDataFromBlockchain(String[] args) throws UnirestException, BlockchainClientException, ParseException {
 
 		if (Constants.LIST_ACTION.equalsIgnoreCase(args[0])) {
 			if (args.length < 2) {
-				throw new InvalidTransactionException(
+				throw new BlockchainClientException(
 						"Invalid parameters for list operation. It should be : list <itemId> or list all(For all items)");
 			}
 
 			String address = null;
 			if (!Constants.LIST_ALL_ACTION.equalsIgnoreCase(args[1])) {
 				// get unique address for input and output
-				address = BlockchainUtils.getBloackchainAddressFromKey(Constants.IDEM, args[1]);
+				address = encoder.getBloackchainAddressFromKey(Constants.IDEM, args[1]);
 			}
 
 			GetRequest getRequest = Unirest.get("http://localhost:8008/state");
@@ -56,19 +55,18 @@ public class InventoryServiceImpl {
 			StateData.Builder stateBuilder = StateData.newBuilder();
 			JsonFormat.merge(serverResponse, stateBuilder);
 			StateData stateData = stateBuilder.build();
-
+			
+			
 			for (Data data : stateData.getDataList()) {
-				byte[] valueDecoded = Base64.getDecoder().decode(data.getData());
-				logger.info("Decoded value is " + new String(valueDecoded));
+				logger.info("Decoded value is " + encoder.decode(data.getData()));
 			}
 		}
 	}
 
-	public void putDataToBLockchain(String[] args) throws UnirestException, UnsupportedEncodingException, InternalError,
-			ParseException, InvalidTransactionException {
+	public void putDataToBLockchain(String[] args) throws BlockchainClientException, UnirestException {
 		if (Constants.CREATE_ACTION.equalsIgnoreCase(args[0])) {
 			if (args.length > 5) {
-				throw new InvalidTransactionException(
+				throw new BlockchainClientException(
 						"Invalid parameters for create operation. It should be : create <itemId> <itemName> <color> <price>");
 			}
 
@@ -83,7 +81,7 @@ public class InventoryServiceImpl {
 			ByteString payloadByteString = ByteString.copyFrom(payload.getBytes());
 
 			// Get unique address
-			String address = BlockchainUtils.getBloackchainAddressFromKey(Constants.IDEM, args[1]);
+			String address = encoder.getBloackchainAddressFromKey(Constants.IDEM, args[1]);
 
 			logger.info("Sending address as - " + address);
 			TransactionHeader txnHeader = TransactionHeader.newBuilder().clearBatcherPublicKey()

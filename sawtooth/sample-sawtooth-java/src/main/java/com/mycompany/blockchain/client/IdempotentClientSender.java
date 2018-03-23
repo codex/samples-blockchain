@@ -10,7 +10,6 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import sawtooth.sdk.client.Signing;
-import sawtooth.sdk.processor.TransactionHandler;
 import sawtooth.sdk.processor.Utils;
 import sawtooth.sdk.processor.exceptions.InternalError;
 import sawtooth.sdk.protobuf.Batch;

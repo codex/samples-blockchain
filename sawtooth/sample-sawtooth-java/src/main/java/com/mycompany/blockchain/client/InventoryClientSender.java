@@ -1,14 +1,10 @@
 package com.mycompany.blockchain.client;
 
-import java.io.UnsupportedEncodingException;
-
 import com.googlecode.protobuf.format.JsonFormat.ParseException;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mycompany.blockchain.constants.Constants;
+import com.mycompany.blockchain.exceptions.BlockchainClientException;
 import com.mycompany.blockchain.service.InventoryServiceImpl;
-
-import sawtooth.sdk.processor.exceptions.InternalError;
-import sawtooth.sdk.processor.exceptions.InvalidTransactionException;
 
 /**
  * 
@@ -20,8 +16,7 @@ import sawtooth.sdk.processor.exceptions.InvalidTransactionException;
  */
 public class InventoryClientSender {
 
-	public static void main(String[] args) throws UnirestException, UnsupportedEncodingException, InternalError,
-			ParseException, InvalidTransactionException {
+	public static void main(String[] args) throws UnirestException, BlockchainClientException, ParseException {
 
 		System.out.println("Welcome to the Inventory client Application -");
 		System.out.println("Supported operatoins are -");

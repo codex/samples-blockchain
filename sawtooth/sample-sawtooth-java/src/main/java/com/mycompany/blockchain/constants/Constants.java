@@ -7,4 +7,6 @@ public class Constants {
 	public static final String CREATE_ACTION = "create";
 	public static final String LIST_ACTION = "list";
 	public static final String LIST_ALL_ACTION = "all";
+	
+	public static final String BASE64_ENCODER = "base64";
 }
