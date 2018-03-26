@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Sample Idepotent Sawtooth Submitter.</name>
 	<description>A sample application to submit an idempotent transaction on sawtooth N/w</description>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>sawtooth</groupId>
@@ -40,10 +40,16 @@
 			<artifactId>protobuf-java-format</artifactId>
 			<version>1.2</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.zeromq/jeromq -->
+		<dependency>
+			<groupId>org.zeromq</groupId>
+			<artifactId>jeromq</artifactId>
+			<version>0.4.0</version>
+		</dependency>
 	</dependencies>
-	 <build>
+	<build>
 		<plugins>
-		 	<plugin>
+			<plugin>
 				<groupId>org.xolstice.maven.plugins</groupId>
 				<artifactId>protobuf-maven-plugin</artifactId>
 				<version>0.5.0</version>
@@ -59,7 +65,14 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>			
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
 		</plugins>
-	</build> 
+	</build>
 </project>
