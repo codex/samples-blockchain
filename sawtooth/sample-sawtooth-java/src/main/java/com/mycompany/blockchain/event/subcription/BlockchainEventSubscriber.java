@@ -1,12 +1,12 @@
 package com.mycompany.blockchain.event.subcription;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Socket;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import sawtooth.sdk.protobuf.ClientBatchGetResponse.Status;
 import sawtooth.sdk.protobuf.ClientEventsSubscribeRequest;
 import sawtooth.sdk.protobuf.ClientEventsSubscribeResponse;
 import sawtooth.sdk.protobuf.EventFilter;
@@ -21,8 +21,8 @@ public class BlockchainEventSubscriber {
 			throws InterruptedException, InvalidProtocolBufferException {
 
 		// Event Subscription Request
-		EventFilter eventFilter = EventFilter.newBuilder().setKey("address").setMatchString("aa5241*")
-				.setFilterType(FilterType.REGEX_ANY).build();
+		EventFilter eventFilter = EventFilter.newBuilder().setKey("address")
+				.setMatchString("aa5241*").setFilterType(FilterType.REGEX_ANY).build();
 
 		EventSubscription eventSubscription = EventSubscription.newBuilder()
 				.setEventType("sawtooth/state-delta").addFilters(eventFilter).build();
@@ -34,7 +34,7 @@ public class BlockchainEventSubscriber {
 		ClientEventsSubscribeRequest request = ClientEventsSubscribeRequest.newBuilder()
 				.addSubscriptions(0, eventSubscription).build();
 
-		Message message = Message.newBuilder().setCorrelationId("122")
+		Message message = Message.newBuilder().setCorrelationId(RandomStringUtils.randomAlphanumeric(7))
 				.setMessageType(MessageType.CLIENT_EVENTS_SUBSCRIBE_REQUEST)
 				.setContent(request.toByteString()).build();
 
@@ -43,7 +43,6 @@ public class BlockchainEventSubscriber {
 		Thread.sleep(5000);
 
 		// Event Subscription Response
-
 		byte[] responseBytes = socket.recv();
 		Message responseMessage = Message.parseFrom(responseBytes);
 		if (responseMessage != null) {
@@ -61,10 +60,9 @@ public class BlockchainEventSubscriber {
 				System.out.println("Subscription successfull...:" + response.getResponseMessage());
 			}
 		}
-		
-		
+
+		// Configure eventListener
 		BlockchainEventListener.listenEvents(socket);
-		
 
 	}
 
