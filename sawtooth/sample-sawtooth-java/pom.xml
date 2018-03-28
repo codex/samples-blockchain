@@ -4,8 +4,9 @@
 	<groupId>com.my.company.blockchain.sawtooth</groupId>
 	<artifactId>sample-sawtooth-java</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Sample Idepotent Sawtooth Submitter.</name>
-	<description>A sample application to submit an idempotent transaction on sawtooth N/w</description>
+	<name>Sample Inventory Item Submitter.</name>
+	<description>A sample application to submit an Inventory transaction on sawtooth N/w</description>
+
 	<dependencies>
 		<dependency>
 			<groupId>sawtooth</groupId>
@@ -34,6 +35,22 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.googlecode.protobuf-java-format</groupId>
+			<artifactId>protobuf-java-format</artifactId>
+			<version>1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>20030203.000129</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.zeromq/jeromq -->
+		<dependency>
+			<groupId>org.zeromq</groupId>
+			<artifactId>jeromq</artifactId>
+			<version>0.4.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -53,6 +70,13 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

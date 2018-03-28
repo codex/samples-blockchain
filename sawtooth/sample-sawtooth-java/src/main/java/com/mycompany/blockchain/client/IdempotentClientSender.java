@@ -1,3 +1,4 @@
+package com.mycompany.blockchain.client;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.logging.Logger;
@@ -9,7 +10,6 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import sawtooth.sdk.client.Signing;
-import sawtooth.sdk.processor.TransactionHandler;
 import sawtooth.sdk.processor.Utils;
 import sawtooth.sdk.processor.exceptions.InternalError;
 import sawtooth.sdk.protobuf.Batch;
@@ -26,11 +26,10 @@ import sawtooth.sdk.protobuf.TransactionHeader;
  * @author dev
  *
  */
-public class InventoryClientSender {
-	private static final Logger logger = Logger.getLogger(InventoryClientSender.class.getName());
-	private static final String IDEM = "invent";
+public class IdempotentClientSender {
+	private static final Logger logger = Logger.getLogger(IdempotentClientSender.class.getName());
+	private static final String IDEM = "idem";
 	private static final String VER = "1.0";
-	private static final String ITEM_ID = "00002";
 	public static void main(String[] args) throws UnirestException, UnsupportedEncodingException, InternalError {
 
 		ECKey privateKey = Signing.generatePrivateKey(null); // new random privatekey
@@ -39,15 +38,16 @@ public class InventoryClientSender {
 
 		ByteString publicKeyByteString = ByteString.copyFrom(new String(publicKeyHex), "UTF-8");
 
-		//Paramters in sequence : id,itemName,color,price
-		//String payload = "create," + ITEM_ID + ",BLockchain CPU,Black,5000";
-		String payload = "list," + ITEM_ID;
+		String prefix = "nis";
+
+		//String payload = getIncrementalPayload(prefix);
+		String payload = "nishant.sonar@synechron.com";
 		logger.info("Sending payload as - "+  payload);
 		String payloadBytes = Utils.hash512(payload.getBytes()); // --fix for invaluid payload seriqalization
 
 		ByteString payloadByteString = ByteString.copyFrom(payload.getBytes());
 
-		String address = getAddress(IDEM, ITEM_ID); // get unique address for input and output
+		String address = getAddress(IDEM, payload); // get unique address for input and output
 		logger.info("Sending address as - "+  address);
 		TransactionHeader txnHeader = TransactionHeader.newBuilder().clearBatcherPublicKey()
 				.setBatcherPublicKey(publicKeyHex)
