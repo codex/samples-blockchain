@@ -1,0 +1,8 @@
+# Sawtooth -- Path Configuration
+# On Linux, the default path settings are:
+#
+   conf_dir = "~/git/samples-blockchain/nodes/v0"
+   key_dir  = "~/git/samples-blockchain/nodes/v0/keys"
+   data_dir = "~/git/samples-blockchain/nodes/v0/data"
+   log_dir  = "~/git/samples-blockchain/nodes/v0/log"
+   policy_dir  = "~/git/samples-blockchain/nodes/v0/policy"
