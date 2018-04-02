@@ -34,3 +34,13 @@ $ sudo docker-compose -f sawtooth-local-validator-peer.yaml down
 4. To enter the shell , open the new terminal window  and run below command and then yuo can start testing in peering mode.
 $docker exec -it sawtooth-shell-default bash
   
+
+
+Runnig Sawtooth as PEER and Privitized on Sawtooth
+1. Checkout the repository 
+2. cd to docker docker/docker-compose
+3. Run below command to start peering
+4. Enter the shell , open the new terminal window  and run below command and then yuo can start testing in peering mode.
+$docker exec -it sawtooth-shell-default bash
+
+We have configured hard keys for the sample to be used for as users and validators . these keys are kept location keys/validagtor and keys/user
