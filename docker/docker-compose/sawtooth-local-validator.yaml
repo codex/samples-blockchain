@@ -21,7 +21,7 @@ services:
     image: hyperledger/sawtooth-validator:latest
     container_name: sawtooth-peer-validator-0
     volumes:
-      - /home/dev/project/sawtooth-core/:/project/sawtooth-core
+      - ${SAWTOOTH_CORE}/:/project/sawtooth-core
     expose:
       - 4004
       - 8800
@@ -54,7 +54,7 @@ services:
     depends_on:
       - validator-0
     volumes:
-      - /home/dev/project/sawtooth-core/:/project/sawtooth-core
+      - ${SAWTOOTH_CORE}/:/project/sawtooth-core
     expose:
       - 4004
     command: settings-tp -C tcp://validator-0:4004
@@ -64,12 +64,12 @@ services:
     image: hyperledger/sawtooth-rest-api:latest
     container_name: sawtooth-peer-rest-api-0
     depends_on:
-      - settings-tp-0
+      - validator-0
     ports:
       - 8008:8008
       - 4004:4004
     volumes:
-      - /home/dev/project/sawtooth-core/:/project/sawtooth-core
+      - ${SAWTOOTH_CORE}/:/project/sawtooth-core
     expose:
       - 4004
       - 8008
@@ -87,19 +87,19 @@ services:
     image: hyperledger/sawtooth-intkey-tp-python:latest
     container_name: sawtooth-peer-intkey-tp-0
     depends_on:
-      - rest-api-0
+      - validator-0
     volumes:
-      - /home/dev/project/sawtooth-core/:/project/sawtooth-core
+      - ${SAWTOOTH_CORE}/:/project/sawtooth-core
     expose:
       - 4004
     command: intkey-tp-python -C tcp://validator-0:4004
     stop_signal: SIGKILL
 
   shell:
-    image: hyperledger/sawtooth-all:1.0
+    image: hyperledger/sawtooth-all:latest
     container_name: sawtooth-shell-default
     depends_on:
-      - intkey-tp-0
+      - validator-0
     volumes:
       - /home/dev/work/code/:/home/dev/work/code/
     entrypoint: "bash -c \"\
@@ -109,7 +109,7 @@ services:
 
   influxdb:
     build:
-      context: /home/dev/project/sawtooth-core/docker
+      context: ${SAWTOOTH_CORE}/docker
       dockerfile: influxdb/sawtooth-stats-influxdb
     image: sawtooth-stats-influxdb:latest
     container_name: sawtooth-peer-influxdb
@@ -119,12 +119,12 @@ services:
 
   grafana:
     build:
-      context: /home/dev/project/sawtooth-core/docker
+      context: ${SAWTOOTH_CORE}/docker
       dockerfile: grafana/sawtooth-stats-grafana
     image: sawtooth-stats-grafana:latest
     container_name: sawtooth-peer-grafana
     ports:
       - "3000:3000"
     volumes:
-      - /home/dev/project/sawtooth-core/:/project/sawtooth-core
+      - ${SAWTOOTH_CORE}/:/project/sawtooth-core
     stop_signal: SIGKILL
