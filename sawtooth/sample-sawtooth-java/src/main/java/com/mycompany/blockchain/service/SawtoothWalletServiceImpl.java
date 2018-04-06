@@ -3,8 +3,10 @@ package com.mycompany.blockchain.service;
 import java.util.logging.Logger;
 
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.wallet.Protos.Wallet;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.googlecode.protobuf.format.JsonFormat;
 import com.googlecode.protobuf.format.JsonFormat.ParseException;
 import com.mashape.unirest.http.Unirest;
@@ -38,35 +40,34 @@ public class SawtoothWalletServiceImpl {
 			.getEncoder(Constants.BASE64_ENCODER);
 
 	public void getDataFromBlockchain(String[] args)
-			throws UnirestException, BlockchainClientException, ParseException {
+			throws UnirestException, BlockchainClientException, ParseException, InvalidProtocolBufferException {
 
-		if (Constants.LIST_ACTION.equalsIgnoreCase(args[0])) {
-			if (args.length < 2) {
-				throw new BlockchainClientException(
-						"Invalid parameters for list operation. It should be : list <itemId> or list all(For all items)");
-			}
-
-			String address = null;
-			if (!Constants.LIST_ALL_ACTION.equalsIgnoreCase(args[1])) {
-				// get unique address for input and output
-				address = encoder.getBloackchainAddressFromKey(Constants.NS_WALLET, args[1]);
-			}
-
-			GetRequest getRequest = Unirest.get("http://localhost:8008/state");
-			if (null != address) {
-				getRequest.queryString("address", address);
-			}
-			String serverResponse = getRequest.asString().getBody();
-			logger.info(serverResponse);
-
-			StateData.Builder stateBuilder = StateData.newBuilder();
-			JsonFormat.merge(serverResponse, stateBuilder);
-			StateData stateData = stateBuilder.build();
-
-			for (Data data : stateData.getDataList()) {
-				logger.info("Decoded value is " + encoder.decode(data.getData()));
-			}
+		if (args.length < 2) {
+			throw new BlockchainClientException(
+					"Invalid parameters for show operation. It should be : show <customerId>");
 		}
+
+		String address = null;
+
+		// get unique address for input and output
+		address = encoder.getBloackchainAddressFromKey(Constants.NS_WALLET, args[1]);
+
+		GetRequest getRequest = Unirest.get("http://localhost:8008/state");
+		if (null != address) {
+			getRequest.queryString("address", address);
+		}
+		String serverResponse = getRequest.asString().getBody();
+		logger.info(serverResponse);
+
+		StateData.Builder stateBuilder = StateData.newBuilder();
+		JsonFormat.merge(serverResponse, stateBuilder);
+		StateData stateData = stateBuilder.build();
+
+		for (Data data : stateData.getDataList()) {
+			logger.info("Decoded value is " + encoder.decode(data.getData()));
+			logger.info("Decoded value is " + Wallet.parseFrom(data.getData().getBytes()));
+		}
+
 	}
 
 	public void putDataToBLockchain(String[] args)
@@ -131,10 +132,9 @@ public class SawtoothWalletServiceImpl {
 					.setCustomerId(Integer.valueOf(args[1])).setAmount(Integer.valueOf(args[2]))
 					.build();
 
-			return SawtoothWalletTransactionPayload.newBuilder()
-					.setPayloadType(PayloadType.DEPOSIT)
+			return SawtoothWalletTransactionPayload.newBuilder().setPayloadType(PayloadType.DEPOSIT)
 					.setDepositData(depositTransactionData).build();
-		case Constants.CREATE_ACTION:
+		case Constants.CREATE_WALLET_ACTION:
 			CreateWalletTransactionData createWalletData = CreateWalletTransactionData.newBuilder()
 					.setCustomerId(Integer.valueOf(args[1]))
 					.setInitialBalance(Integer.valueOf(args[2])).build();

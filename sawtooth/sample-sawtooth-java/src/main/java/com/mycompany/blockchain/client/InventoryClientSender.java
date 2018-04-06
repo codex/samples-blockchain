@@ -29,7 +29,7 @@ public class InventoryClientSender {
 		case Constants.LIST_ACTION:
 			inventoryService.getDataFromBlockchain(args);
 			break;
-		case Constants.CREATE_ACTION:
+		case Constants.CREATE_WALLET_ACTION:
 			inventoryService.putDataToBLockchain(args);
 			break;
 		default:

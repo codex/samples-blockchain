@@ -1,7 +1,5 @@
 package com.mycompany.blockchain.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.bitcoinj.core.ECKey;
@@ -66,7 +64,7 @@ public class InventoryServiceImpl {
 	}
 
 	public void putDataToBLockchain(String[] args) throws BlockchainClientException, UnirestException {
-		if (Constants.CREATE_ACTION.equalsIgnoreCase(args[0])) {
+		if (Constants.CREATE_WALLET_ACTION.equalsIgnoreCase(args[0])) {
 			if (args.length > 5) {
 				throw new BlockchainClientException(
 						"Invalid parameters for create operation. It should be : create <itemId> <itemName> <color> <price>");
