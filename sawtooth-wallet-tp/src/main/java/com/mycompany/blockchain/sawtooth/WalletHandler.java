@@ -144,20 +144,21 @@ public class WalletHandler implements TransactionHandler {
 		}
 
 		// storing the data.
-		Wallet wallet;
+		Wallet wallet, oldWallet = null;
 		int prevBalance = 0;
 		try {
 			for (Map.Entry<String, ByteString> data : blockchainDataMap.entrySet()) {
-				prevBalance = Integer.parseInt(data.getValue().toString("UTF-8"));
+				//prevBalance = Integer.parseInt(data.getValue().toString("UTF-8"));
+				oldWallet = decodeState(data.getValue());
 			}
-		} catch (NumberFormatException | UnsupportedEncodingException e) {
+		} catch (NumberFormatException | InvalidProtocolBufferException e) {
 			throw new InternalError("Error while retrieving a wallet for deposit :" + e);
 		}
-				
-		wallet = Wallet.newBuilder().setCustomerId(depositData.getCustomerId())
-				.setBalance(prevBalance + depositData.getAmount()).build();
 
-		Map.Entry<String, ByteString> entry = this.encodeState(address, wallet.toString());
+		wallet = Wallet.newBuilder().setCustomerId(depositData.getCustomerId())
+				.setBalance(oldWallet.getBalance() + depositData.getAmount()).build();
+
+		Map.Entry<String, ByteString> entry = this.encodeState(address, wallet.toByteString());
 		Collection<Map.Entry<String, ByteString>> addressValues = Arrays.asList(entry);
 		addresses = state.setState(addressValues);
 
@@ -187,7 +188,7 @@ public class WalletHandler implements TransactionHandler {
 
 		Wallet wallet = Wallet.newBuilder().setCustomerId(transactionData.getCustomerId())
 				.setBalance(0).build();
-		Map.Entry<String, ByteString> entry = this.encodeState(address, wallet.toString());
+		Map.Entry<String, ByteString> entry = this.encodeState(address, wallet.toByteString());
 		Collection<Map.Entry<String, ByteString>> addressValues = Arrays.asList(entry);
 		addresses = state.setState(addressValues);
 
@@ -196,7 +197,6 @@ public class WalletHandler implements TransactionHandler {
 		}
 		logger.info("Wallet created to address :" + address);
 	}
-
 
 	/**
 	 * The implementation that shoudl return a unique address as per the payload
@@ -240,16 +240,16 @@ public class WalletHandler implements TransactionHandler {
 	 * The implementation doestn do any encoding and add teh data with java
 	 * Serialized bytes.
 	 */
-	public Map.Entry<String, ByteString> encodeState(String address, String data) {
-		return new AbstractMap.SimpleEntry<String, ByteString>(address,
-				ByteString.copyFrom(data.getBytes()));
+	public Map.Entry<String, ByteString> encodeState(String address, ByteString data) {
+		return new AbstractMap.SimpleEntry<String, ByteString>(address, data);
 	}
 
 	/**
 	 * Helper function to decode State retrieved from the address of the name.
+	 * @throws InvalidProtocolBufferException 
 	 */
-	public String decodeState(byte[] bytes) {
-		return new String(bytes);
+	public Wallet decodeState(ByteString bytes) throws InvalidProtocolBufferException {
+		return Wallet.parseFrom(bytes);
 	}
 
 	/**
