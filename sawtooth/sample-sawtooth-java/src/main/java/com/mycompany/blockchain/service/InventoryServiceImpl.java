@@ -1,5 +1,7 @@
 package com.mycompany.blockchain.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.bitcoinj.core.ECKey;
@@ -42,7 +44,7 @@ public class InventoryServiceImpl {
 			String address = null;
 			if (!Constants.LIST_ALL_ACTION.equalsIgnoreCase(args[1])) {
 				// get unique address for input and output
-				address = encoder.getBloackchainAddressFromKey(Constants.IDEM, args[1]);
+				address = encoder.getBloackchainAddressFromKey(Constants.NS_IDEM, args[1]);
 			}
 
 			GetRequest getRequest = Unirest.get("http://localhost:8008/state");
@@ -81,28 +83,28 @@ public class InventoryServiceImpl {
 			ByteString payloadByteString = ByteString.copyFrom(payload.getBytes());
 
 			// Get unique address
-			String address = encoder.getBloackchainAddressFromKey(Constants.IDEM, args[1]);
+			String address = encoder.getBloackchainAddressFromKey(Constants.NS_IDEM, args[1]);
 
 			logger.info("Sending address as - " + address);
 			TransactionHeader txnHeader = TransactionHeader.newBuilder().clearBatcherPublicKey()
-					.setBatcherPublicKey(publicKeyHex).setFamilyName(Constants.IDEM) // Idem Family
+					.setBatcherPublicKey(publicKeyHex).setFamilyName(Constants.NS_IDEM) // Idem Family
 					.setFamilyVersion(Constants.VER).addInputs(address).setNonce("1").addOutputs(address)
 					.setPayloadSha512(payloadBytes).setSignerPublicKey(publicKeyHex).build();
 
 			ByteString txnHeaderBytes = txnHeader.toByteString();
 
 			String value = Signing.sign(privateKey, txnHeader.toByteArray());
-			Transaction txn = Transaction.newBuilder().setHeader(txnHeaderBytes).setPayload(payloadByteString)
+			Transaction txn1 = Transaction.newBuilder().setHeader(txnHeaderBytes).setPayload(payloadByteString)
 					.setHeaderSignature(value).build();
 
 			BatchHeader batchHeader = BatchHeader.newBuilder().clearSignerPublicKey().setSignerPublicKey(publicKeyHex)
-					.addTransactionIds(txn.getHeaderSignature()).build();
+					.addTransactionIds(txn1.getHeaderSignature()).build();
 
 			ByteString batchHeaderBytes = batchHeader.toByteString();
-
+			
 			String value_batch = Signing.sign(privateKey, batchHeader.toByteArray());
 			Batch batch = Batch.newBuilder().setHeader(batchHeaderBytes).setHeaderSignature(value_batch).setTrace(true)
-					.addTransactions(txn).build();
+					.addTransactions(txn1).addTransactions(txn1).build();
 			BatchList batchList = BatchList.newBuilder().addBatches(batch).build();
 			ByteString batchBytes = batchList.toByteString();
 
